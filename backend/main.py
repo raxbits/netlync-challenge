@@ -93,8 +93,10 @@ async def get_all_bookmarks(request: Request):
     
     if user:
         bookmarks = db.query(models.Bookmark).filter(or_(models.Bookmark.private==False, models.Bookmark.owner_id == user.id)).all()
-        print(bookmarks)
-        return bookmarks
+        if bookmarks:
+            return bookmarks
+        else:
+            return []
 
 @app.post('/bookmarks',
         response_model = Bookmark,
@@ -105,13 +107,18 @@ async def create_a_bookmark(request: Request, _bookmark:BookmarkCreate):
     if not token:
         raise HTTPException(status_code=STATUS.HTTP_401_UNAUTHORIZED, detail="Authorization Failed")
     user = find_user_by_token(token)
-    new_bookmark = models.Bookmark(owner_id=user.id, url = _bookmark.url, private=_bookmark.private)
-    db.add(new_bookmark)
-    db.commit()
-    return new_bookmark
+    if user:
+        new_bookmark = models.Bookmark(owner_id=user.id, url = _bookmark.url, private=_bookmark.private)
+
+        db.add(new_bookmark)
+        db.commit()
+        return new_bookmark
+    else:
+        raise HTTPException(status_code=STATUS.HTTP_401_UNAUTHORIZED, detail="Authorization Failed")
 
 
-@app.delete('/bookmark/{bookmark_id}')
+
+@app.delete('/bookmarks/{bookmark_id}', response_model=Dict)
 async def delete_bookmark(request: Request, bookmark_id:int):
     
     token = request.headers.get('Authorization', None)
@@ -126,4 +133,4 @@ async def delete_bookmark(request: Request, bookmark_id:int):
     if owner and bookmark_to_delete.owner_id == owner.id:    
         db.delete(bookmark_to_delete)
         db.commit()
-    return 'ok'
+    return {'success':'ok'}
