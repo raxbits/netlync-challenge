@@ -2,8 +2,7 @@
 
 ## Setup
 - Install require packages `pip install -r requirements.txt`
-- Create database `python create_db.py`
-- Run server `uvicorn main:app --reload`
+- Run: `./run.sh` in bash
 
 ## Usage
 The app exposes couple endpoints to enable functionality required. The routes are arranged based on use case flow:
